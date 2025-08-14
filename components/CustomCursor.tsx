@@ -7,8 +7,12 @@ import { useMousePosition } from "@/hooks/use-mouse-position"
 export const CustomCursor = () => {
   const position = useMousePosition()
   const [isClicked, setIsClicked] = useState(false)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
 
   useEffect(() => {
+    // Check for touch support
+    setIsTouchDevice("ontouchstart" in window || navigator.maxTouchPoints > 0)
+
     const handleMouseDown = () => setIsClicked(true)
     const handleMouseUp = () => setIsClicked(false)
 
@@ -21,7 +25,7 @@ export const CustomCursor = () => {
     }
   }, [])
 
-  if (position.x < 0 || position.y < 0) {
+  if (isTouchDevice || position.x < 0 || position.y < 0) {
     return null
   }
 

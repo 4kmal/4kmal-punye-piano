@@ -14,6 +14,7 @@ import AudioVisualizer from "./AudioVisualizer"
 import { SkeuomorphicButton } from "./SkeuomorphicButton"
 import { SkeuomorphicCard } from "./SkeuomorphicCard"
 import InitializeAudio from "./InitializeAudio"
+import { useFont } from "@/contexts/FontContext"
 
 interface AudioSettings {
   volume: number
@@ -258,13 +259,14 @@ const MidiController: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-6 overflow-y-auto">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="text-center">
-          <ParticleTitle text="4kmal4lif x 10x Engineer" /><br></br>
-          <p className="text-slate-300 mt-2">Make a Travis Scott type Beat Synthesizer and become a Synth God</p>
+        <div className="text-center particle-container">
+          <ParticleTitle text="4kmal4lif x 10x Engineer" />
+          <p className="text-slate-300 mt-2">
+            Make a Travis Scott type Beat Synthesizer and become a Synth God
+          </p>
         </div>
-        
 
         {/* Control Panel */}
         <SkeuomorphicCard>

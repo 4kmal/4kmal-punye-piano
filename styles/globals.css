@@ -2,12 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  cursor: none;
+@media (pointer: fine) {
+  body {
+    cursor: none;
+  }
+
+  button, a, [role="button"], input, select, textarea {
+    cursor: none;
+  }
 }
 
-button, a, [role="button"], input, select, textarea {
-  cursor: none;
+.particle-container canvas {
+  max-width: 100%;
+  height: auto !important;
 }
 
 @layer utilities {
