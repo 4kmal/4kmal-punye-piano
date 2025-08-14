@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import ParticleTitle from "./ParticleTitle"
 import { ScrambledText } from "./ScrambledText"
 import { RetroButton } from "./RetroButton"
+import { FontSelector } from "./FontSelector"
 
 interface AudioSettings {
   volume: number
@@ -249,8 +250,8 @@ const MidiController: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="text-center">
-          <ParticleTitle text="4kmal4lif x 10x Engineer" /><br></br>
-          <ScrambledText text="Web-based synthesizer with realistic piano sounds" playOnMount={false} />
+          <ParticleTitle text="4kmal4lif x 10x Engineer" />
+          <p className="text-slate-300 mt-2">Web-based synthesizer with realistic piano sounds</p>
         </div>
 
         {/* Control Panel */}
@@ -259,6 +260,9 @@ const MidiController: React.FC = () => {
             <CardTitle className="text-white text-xl">Sound Controls</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="flex flex-wrap items-center gap-4">
+              <FontSelector />
+            </div>
             {/* Sound Mode Selection */}
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-white text-sm font-medium">Sound Mode:</span>

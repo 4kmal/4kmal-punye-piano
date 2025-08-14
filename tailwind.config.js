@@ -18,6 +18,10 @@ module.exports = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-varsity)"],
+        "press-start": ["var(--font-press-start)"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

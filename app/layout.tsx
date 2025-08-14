@@ -1,50 +1,53 @@
 import type React from "react"
 import { cn } from "@/lib/utils"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import { GeistSans } from "geist/font/sans"
 import { CustomCursor } from "@/components/CustomCursor"
+import { Analytics } from "@vercel/analytics/react"
+import localFont from "next/font/local"
+import { FontProvider } from "@/contexts/FontContext"
+import { FontWrapper } from "@/components/FontWrapper"
 
 import "./globals.css"
 import "@/styles/retro-button.css" // Import retro button styles
 
-const inter = Inter({ subsets: ["latin"] })
-
-// If the font is available from Google Fonts, you can import it like this:
-import { Press_Start_2P } from "next/font/google"
-
-const pressStart2P = Press_Start_2P({
-  weight: "400",
-  subsets: ["latin"],
+const varsityFont = localFont({
+  src: "../public/fonts/varsity.ttf",
   display: "swap",
-  variable: "--font-press-start-2p",
+  variable: "--font-varsity",
+})
+
+const pressStartFont = localFont({
+  src: "../public/fonts/press-start.ttf",
+  display: "swap",
+  variable: "--font-press-start",
 })
 
 export const metadata: Metadata = {
-  title: "MIDI Controller - Web Synthesizer",
-  description: "A web-based MIDI controller with realistic piano sounds and synthesizer capabilities",
-    generator: 'v0.app'
+  title: "MIDI Controller - Web Synth",
+  description: "A web-based synthesizer with realistic piano sounds, built with Next.js and the Web Audio API.",
+  icons: [{ rel: "icon", url: "/favicon.png" }],
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
-          GeistSans.className,
-          pressStart2P.variable
+          varsityFont.variable,
+          pressStartFont.variable
         )}
       >
-        <div className="relative z-0">
-          <CustomCursor />
-          {children}
-        </div>
+        <FontProvider>
+          <FontWrapper>
+            <div className="relative z-0">
+              <CustomCursor />
+              {children}
+            </div>
+            <Analytics />
+          </FontWrapper>
+        </FontProvider>
       </body>
     </html>
   )
