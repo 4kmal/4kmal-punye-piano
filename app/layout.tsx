@@ -9,6 +9,8 @@ import { FontWrapper } from "@/components/FontWrapper"
 
 import "./globals.css"
 import "@/styles/retro-button.css" // Import retro button styles
+import "@/styles/skeuomorphic-button.css"
+import "@/styles/skeuomorphic-card.css"
 
 const varsityFont = localFont({
   src: "../public/fonts/varsity.ttf",

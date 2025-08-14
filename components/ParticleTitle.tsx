@@ -35,7 +35,7 @@ export default function ParticleTitle({ text }: ParticleTitleProps) {
       if (!ctx || !canvas) return
 
       const dpr = window.devicePixelRatio || 1
-      const fontSize = isMobile ? 36 : 72
+      const fontSize = isMobile ? 48 : 72 // Increased mobile font size
       ctx.font = `bold ${fontSize * dpr}px "Geist Sans", sans-serif`
 
       const textMetrics = ctx.measureText(text)
@@ -49,27 +49,32 @@ export default function ParticleTitle({ text }: ParticleTitleProps) {
 
       ctx.font = `bold ${fontSize * dpr}px "Geist Sans", sans-serif`
       ctx.textBaseline = "middle"
-      ctx.textAlign = "left"
+      ctx.textAlign = "center" // Center align the text
 
       const greenPart = "10x"
       const textParts = text.split(greenPart)
 
-      let currentX = 0
+      const firstPartWidth = ctx.measureText(textParts[0]).width
+      const greenPartWidth = ctx.measureText(greenPart).width
+
+      const totalWidth = ctx.measureText(text).width
+      let currentX = (canvas.width - totalWidth) / 2
 
       // Draw first part (white)
       ctx.fillStyle = "white"
-      ctx.fillText(textParts[0], currentX, canvas.height / 2)
-      currentX += ctx.measureText(textParts[0]).width
+      ctx.fillText(textParts[0], currentX + firstPartWidth / 2, canvas.height / 2)
+      currentX += firstPartWidth
 
       // Draw green part
       ctx.fillStyle = "#00E6AE" // A nice green color
-      ctx.fillText(greenPart, currentX, canvas.height / 2)
-      currentX += ctx.measureText(greenPart).width
+      ctx.fillText(greenPart, currentX + greenPartWidth / 2, canvas.height / 2)
+      currentX += greenPartWidth
 
       // Draw second part (white)
       if (textParts[1]) {
+        const secondPartWidth = ctx.measureText(textParts[1]).width
         ctx.fillStyle = "white"
-        ctx.fillText(textParts[1], currentX, canvas.height / 2)
+        ctx.fillText(textParts[1], currentX + secondPartWidth / 2, canvas.height / 2)
       }
 
       textImageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
@@ -96,7 +101,7 @@ export default function ParticleTitle({ text }: ParticleTitleProps) {
             y: y / dpr,
             baseX: x / dpr,
             baseY: y / dpr,
-            size: Math.random() * 1.5 + 1,
+            size: isMobile ? Math.random() * 2 + 1.2 : Math.random() * 1.5 + 1, // Larger particles on mobile
             color: isGreen ? "#00E6AE" : "white",
             life: Math.random() * 100 + 50,
           }
@@ -107,7 +112,7 @@ export default function ParticleTitle({ text }: ParticleTitleProps) {
     }
 
     const createInitialParticles = () => {
-      const density = isMobile ? 0.5 : 1
+      const density = isMobile ? 0.8 : 1 // Increased mobile density
       const baseParticleCount = 4000 * density
       const particleCount = Math.floor(
         baseParticleCount * ((canvas.width * canvas.height) / (1920 * 120))

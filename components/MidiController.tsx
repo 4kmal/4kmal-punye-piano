@@ -2,14 +2,18 @@
 
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import Piano from "./Piano"
 import ControlKnob from "./ControlKnob"
 import { PianoSynthesizer } from "./PianoSynthesizer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import ParticleTitle from "./ParticleTitle"
-import { ScrambledText } from "./ScrambledText"
 import { RetroButton } from "./RetroButton"
 import { FontSelector } from "./FontSelector"
+import AudioVisualizer from "./AudioVisualizer"
+import { SkeuomorphicButton } from "./SkeuomorphicButton"
+import { SkeuomorphicCard } from "./SkeuomorphicCard"
+import InitializeAudio from "./InitializeAudio"
 
 interface AudioSettings {
   volume: number
@@ -38,6 +42,7 @@ const MidiController: React.FC = () => {
   const masterGainRef = useRef<GainNode | null>(null)
   const filterRef = useRef<BiquadFilterNode | null>(null)
   const reverbRef = useRef<ConvolverNode | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
 
   const [audioSettings, setAudioSettings] = useState<AudioSettings>({
     volume: 0.5,
@@ -95,6 +100,10 @@ const MidiController: React.FC = () => {
       filter.frequency.value = audioSettings.filterFreq
       filter.Q.value = 1
 
+      // Create Analyser
+      const analyser = context.createAnalyser()
+      analyser.fftSize = 2048
+
       // Create reverb (simple delay for demonstration)
       const reverb = context.createConvolver()
       const reverbBuffer = createReverbImpulse(context, 2, 2, false)
@@ -103,12 +112,14 @@ const MidiController: React.FC = () => {
       // Connect audio graph
       masterGain.connect(filter)
       filter.connect(reverb)
-      reverb.connect(context.destination)
+      reverb.connect(analyser)
+      analyser.connect(context.destination)
       filter.connect(context.destination) // Dry signal
 
       masterGainRef.current = masterGain
       filterRef.current = filter
       reverbRef.current = reverb
+      analyserRef.current = analyser
 
       // Initialize piano synthesizer
       pianoSynthRef.current = new PianoSynthesizer(context, masterGain, filter)
@@ -250,49 +261,50 @@ const MidiController: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="text-center">
-          <ParticleTitle text="4kmal4lif x 10x Engineer" />
-          <p className="text-slate-300 mt-2">Web-based synthesizer with realistic piano sounds</p>
+          <ParticleTitle text="4kmal4lif x 10x Engineer" /><br></br>
+          <p className="text-slate-300 mt-2">Make a Travis Scott type Beat Synthesizer and become a Synth God</p>
         </div>
+        
 
         {/* Control Panel */}
-        <Card className="bg-slate-800/90 border-slate-600 backdrop-blur-sm">
-          <CardHeader className="pb-4">
+        <SkeuomorphicCard>
+          <CardHeader className="pb-4 px-0 pt-0">
             <CardTitle className="text-white text-xl">Sound Controls</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex flex-wrap items-center gap-4">
+          <CardContent className="space-y-6 px-0 pb-0">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <FontSelector />
             </div>
             {/* Sound Mode Selection */}
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-white text-sm font-medium">Sound Mode:</span>
               <div className="flex gap-2">
-                <RetroButton
-                  label="Piano"
-                  variant={soundMode === "piano" ? "primary" : "secondary"}
-                  size="sm"
+                <SkeuomorphicButton
                   onClick={() => {
                     stopAllNotes()
                     setSoundMode("piano")
                   }}
-                />
-                <RetroButton
-                  label="Synthesizer"
-                  variant={soundMode === "oscillator" ? "primary" : "secondary"}
-                  size="sm"
+                  variant={soundMode === "piano" ? "primary" : undefined}
+                >
+                  Piano
+                </SkeuomorphicButton>
+                <SkeuomorphicButton
                   onClick={() => {
                     stopAllNotes()
                     setSoundMode("oscillator")
                   }}
-                />
+                  variant={soundMode === "oscillator" ? "primary" : undefined}
+                >
+                  Synthesizer
+                </SkeuomorphicButton>
               </div>
-              <RetroButton
-                label="Stop All"
-                variant="danger"
-                size="sm"
+              <SkeuomorphicButton
                 onClick={emergencyStop}
+                variant="danger"
                 className="ml-auto"
-              />
+              >
+                Stop All
+              </SkeuomorphicButton>
             </div>
 
             {/* Control Knobs */}
@@ -343,13 +355,13 @@ const MidiController: React.FC = () => {
                 <span className="text-white text-sm font-medium">Waveform:</span>
                 <div className="flex gap-2">
                   {(["sine", "square", "sawtooth", "triangle"] as OscillatorType[]).map((wave) => (
-                    <RetroButton
+                    <SkeuomorphicButton
                       key={wave}
-                      label={wave}
-                      variant={waveform === wave ? "success" : "secondary"}
-                      size="sm"
                       onClick={() => setWaveform(wave)}
-                    />
+                      variant={waveform === wave ? "primary" : undefined}
+                    >
+                      {wave}
+                    </SkeuomorphicButton>
                   ))}
                 </div>
               </div>
@@ -367,31 +379,25 @@ const MidiController: React.FC = () => {
             )}
 
             {/* Initialize Audio Button */}
-            {!isPlaying && (
-              <RetroButton
-                label="Mulakan Audio"
-                variant="info"
-                size="lg"
-                onClick={startAudio}
-                className="w-full"
-              />
-            )}
+            <div className="flex justify-center mt-4">
+              <InitializeAudio onInitialize={startAudio} />
+            </div>
           </CardContent>
-        </Card>
+        </SkeuomorphicCard>
 
         {/* Piano */}
         <Card className="bg-slate-800/90 border-slate-600 backdrop-blur-sm">
           <CardHeader className="pb-4">
-            <ScrambledText
-              text="Piano Keyboard"
-              className="text-white text-xl text-center"
-              playOnMount={false}
-            />
+            <CardTitle className="text-white text-xl text-center">Piano Keyboard</CardTitle>
           </CardHeader>
           <CardContent className="flex justify-center py-6">
             <Piano onNotePlay={playNote} onNoteStop={stopNote} />
           </CardContent>
         </Card>
+
+        <div className="audio-visualizer-container">
+          <AudioVisualizer analyser={analyserRef.current} />
+        </div>
 
         {/* Instructions */}
         <Card className="bg-slate-800/90 border-slate-600 backdrop-blur-sm">

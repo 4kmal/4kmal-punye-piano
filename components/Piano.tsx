@@ -3,6 +3,8 @@
 import type React from "react"
 import { useEffect, useState, useRef } from "react"
 import { cn } from "@/lib/utils"
+import { Maximize, Minimize } from "lucide-react"
+import "./Piano.css"
 
 interface PianoProps {
   onNotePlay: (frequency: number, note: string) => void
@@ -11,9 +13,12 @@ interface PianoProps {
 
 const Piano: React.FC<PianoProps> = ({ onNotePlay, onNoteStop }) => {
   const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set())
+  const [isKeyPressed, setIsKeyPressed] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [draggedKey, setDraggedKey] = useState<string | null>(null)
   const lastNotePlayed = useRef<string | null>(null)
+  const pianoContainerRef = useRef<HTMLDivElement>(null)
+  const [isFullScreen, setIsFullScreen] = useState(false)
 
   // Note frequencies for one octave starting from C4 with keyboard mappings
   const notes = [
@@ -77,10 +82,12 @@ const Piano: React.FC<PianoProps> = ({ onNotePlay, onNoteStop }) => {
   const handleNotePlay = (note: string, frequency: number) => {
     onNotePlay(frequency, note)
     lastNotePlayed.current = note
+    setIsKeyPressed(note)
   }
 
   const handleNoteStop = (note: string) => {
     onNoteStop(note)
+    setIsKeyPressed(null)
   }
 
   const handleMouseDown = (note: string, frequency: number, keyboardKey: string) => {
@@ -96,6 +103,37 @@ const Piano: React.FC<PianoProps> = ({ onNotePlay, onNoteStop }) => {
       }
       handleNotePlay(note, frequency)
       setDraggedKey(keyboardKey)
+    }
+  }
+
+  const toggleFullScreen = async () => {
+    const elem = pianoContainerRef.current
+
+    if (!elem) return
+
+    const handleFullScreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement)
+    }
+
+    if (!document.fullscreenElement) {
+      try {
+        await elem.requestFullscreen()
+        if (screen.orientation && typeof screen.orientation.lock === "function") {
+          await screen.orientation.lock("landscape")
+        }
+      } catch (err) {
+        console.error("Error attempting to enable full-screen mode:", err)
+      }
+    } else {
+      if (document.exitFullscreen) {
+        await document.exitFullscreen()
+      }
+    }
+
+    document.addEventListener("fullscreenchange", handleFullScreenChange)
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullScreenChange)
     }
   }
 
@@ -164,7 +202,7 @@ const Piano: React.FC<PianoProps> = ({ onNotePlay, onNoteStop }) => {
       if (keyCode === "backslash") mappedKey = "\\"
 
       const noteData = keyboardMap.get(mappedKey)
-      if (noteData && pressedKeys.has(mappedKey)) {
+      if (noteData) {
         setPressedKeys((prev) => {
           const newSet = new Set(prev)
           newSet.delete(mappedKey)
@@ -188,19 +226,37 @@ const Piano: React.FC<PianoProps> = ({ onNotePlay, onNoteStop }) => {
   }, [pressedKeys, isDragging])
 
   // Check if a key is currently pressed (for visual feedback)
-  const isKeyPressed = (keyboardKey: string) => {
+  const isKeyCurrentlyPressed = (keyboardKey: string) => {
     return pressedKeys.has(keyboardKey.toLowerCase()) || draggedKey === keyboardKey
   }
 
   return (
-    <div className="relative mx-auto overflow-x-auto" style={{ maxWidth: "100vw", height: "220px" }}>
-      <div className="relative" style={{ width: "700px", height: "200px" }}>
+    <div
+      ref={pianoContainerRef}
+      className={cn(
+        "relative mx-auto overflow-x-auto bg-slate-800 piano-container",
+        isFullScreen && "fullscreen-piano"
+      )}
+      style={{ maxWidth: "100vw", height: "220px" }}
+    >
+      <button
+        onClick={toggleFullScreen}
+        className="absolute top-2 right-2 z-10 p-2 rounded-full bg-slate-700/50 text-white hover:bg-slate-600/80 transition-colors"
+        aria-label="Toggle Fullscreen"
+      >
+        {typeof document !== "undefined" && document.fullscreenElement ? (
+          <Minimize className="w-5 h-5" />
+        ) : (
+          <Maximize className="w-5 h-5" />
+        )}
+      </button>
+      <div className="relative piano-keys" style={{ width: "700px", height: "200px" }}>
         {/* White keys */}
         {whiteKeys.map((key) => (
           <button
             key={key.note}
             className={`absolute border-2 transition-all duration-100 rounded-b-lg shadow-lg ${
-              isKeyPressed(key.key)
+              isKeyCurrentlyPressed(key.key)
                 ? "bg-slate-300 border-slate-400 shadow-inner transform translate-y-1"
                 : "bg-white border-slate-300 active:bg-slate-200"
             }`}
@@ -231,7 +287,7 @@ const Piano: React.FC<PianoProps> = ({ onNotePlay, onNoteStop }) => {
           <button
             key={key.note}
             className={`absolute transition-all duration-100 rounded-b-lg shadow-xl ${
-              isKeyPressed(key.key)
+              isKeyCurrentlyPressed(key.key)
                 ? "bg-slate-600 border-2 border-slate-500 shadow-inner transform translate-y-1"
                 : "bg-slate-900 active:bg-slate-700 border-2 border-slate-700"
             }`}

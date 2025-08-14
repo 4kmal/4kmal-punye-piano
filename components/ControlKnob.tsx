@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useRef } from "react"
+import React, { useState, useRef, useEffect } from "react"
 
 interface ControlKnobProps {
   label: string
@@ -16,6 +16,11 @@ const ControlKnob: React.FC<ControlKnobProps> = ({ label, value, min, max, onCha
   const knobRef = useRef<HTMLDivElement>(null)
   const startYRef = useRef(0)
   const startValueRef = useRef(0)
+  const currentValueRef = useRef(value)
+
+  useEffect(() => {
+    currentValueRef.current = value
+  }, [value])
 
   const normalizedValue = (value - min) / (max - min)
   const rotation = normalizedValue * 270 - 135 // -135 to +135 degrees
@@ -46,6 +51,17 @@ const ControlKnob: React.FC<ControlKnobProps> = ({ label, value, min, max, onCha
   const handleTouchMove = (e: TouchEvent) => handleInteractionMove(e.touches[0].clientY)
   const handleTouchEnd = () => handleInteractionEnd()
 
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault()
+    const delta = e.deltaY > 0 ? -1 : 1
+    const sensitivity = (max - min) / 100 // Adjust sensitivity as needed
+    const newValue = Math.min(
+      max,
+      Math.max(min, currentValueRef.current + delta * sensitivity)
+    )
+    onChange(newValue)
+  }
+
   React.useEffect(() => {
     if (isDragging) {
       document.addEventListener("mousemove", handleMouseMove)
@@ -72,6 +88,7 @@ const ControlKnob: React.FC<ControlKnobProps> = ({ label, value, min, max, onCha
           }`}
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
+          onWheel={handleWheel}
           style={{
             transform: `rotate(${rotation}deg) ${isDragging ? "scale(1.05)" : ""}`,
           }}

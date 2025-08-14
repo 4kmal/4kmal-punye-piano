@@ -1,0 +1,63 @@
+/* Skeuomorphic Button Styles */
+.skeuomorphic-button {
+  -webkit-appearance: none;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  cursor: pointer;
+  padding: 0 1rem;
+  height: 40px;
+  background-image: linear-gradient(to top, #37474f 0%, #546e7a 80%, #607d8b 100%);
+  border-radius: 20px;
+  border: 1px solid #263238;
+  box-shadow: inset 0 0 2px 0 rgba(255, 255, 255, 0.1), 0 4px 6px rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #eceff1;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+.skeuomorphic-button > * {
+  transition: transform 0.2s ease;
+}
+
+.skeuomorphic-button:hover:not(:disabled) {
+  background-image: linear-gradient(to top, #455a64 0%, #607d8b 80%, #78909c 100%);
+}
+
+.skeuomorphic-button:active:not(:disabled) {
+  box-shadow: inset 0 0 5px 2px rgba(0, 0, 0, 0.3);
+}
+
+.skeuomorphic-button:active:not(:disabled) > * {
+  transform: scale(0.97);
+}
+
+.skeuomorphic-button.primary {
+  background-image: linear-gradient(to top, #1e88e5 0%, #42a5f5 80%, #64b5f6 100%);
+  border-color: #1565c0;
+}
+
+.skeuomorphic-button.primary:hover:not(:disabled) {
+  background-image: linear-gradient(to top, #2196f3 0%, #64b5f6 80%, #90caf9 100%);
+}
+
+.skeuomorphic-button.danger {
+  background-image: linear-gradient(to top, #e53935 0%, #ef5350 80%, #e57373 100%);
+  border-color: #c62828;
+}
+
+.skeuomorphic-button.danger:hover:not(:disabled) {
+  background-image: linear-gradient(to top, #f44336 0%, #e57373 80%, #ef9a9a 100%);
+}
+
+.skeuomorphic-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+

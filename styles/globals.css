@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  cursor: none;
+}
+
+button, a, [role="button"], input, select, textarea {
+  cursor: none;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

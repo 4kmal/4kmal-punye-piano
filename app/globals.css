@@ -140,6 +140,25 @@
   }
 }
 
+.piano-container:fullscreen {
+  display: flex;
+  flex-direction: column-reverse; /* Play with this to change order */
+  align-items: center;
+  justify-content: center;
+  background-color: #1e293b; /* slate-800 */
+  padding: 2rem;
+}
+
+.piano-container:fullscreen .piano-keys {
+  transform-origin: center;
+  transform: scale(1.5); /* Adjust scale as needed */
+}
+
+.piano-container:fullscreen .audio-visualizer-container {
+  width: 80%; /* Or adjust as needed */
+  margin-bottom: 2rem; /* Space between visualizer and piano */
+}
+
 /**
  * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
  */
