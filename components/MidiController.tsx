@@ -292,7 +292,7 @@ const MidiController: React.FC = () => {
             </div>
 
             {/* Control Knobs */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-4 md:gap-6">
               <ControlKnob
                 label="Volume"
                 value={audioSettings.volume}
@@ -392,11 +392,10 @@ const MidiController: React.FC = () => {
         {/* Instructions */}
         <Card className="bg-slate-800/90 border-slate-600 backdrop-blur-sm">
           <CardContent className="pt-6 space-y-4">
-            <p>
-              text='Play notes by clicking the piano keys or using your computer keyboard. You may need to click "Initialize Audio" first due to browser audio policies.'
-              className="text-slate-200 text-center text-base"
-              playOnMount</p>
-            
+            <p className="text-slate-200 text-center text-base">
+              Play notes by clicking the piano keys or using your computer keyboard. You may need to click{" "}
+              <strong>"Initialize Audio"</strong> first due to browser audio policies.
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div className="bg-slate-700/50 p-4 rounded-lg border border-slate-600">
                 <h4 className="text-white font-semibold mb-3">Keyboard Controls - Lower Octave (C4-B4):</h4>

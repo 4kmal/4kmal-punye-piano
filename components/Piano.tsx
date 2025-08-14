@@ -1,7 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
+import { cn } from "@/lib/utils"
 
 interface PianoProps {
   onNotePlay: (frequency: number, note: string) => void
@@ -10,6 +11,9 @@ interface PianoProps {
 
 const Piano: React.FC<PianoProps> = ({ onNotePlay, onNoteStop }) => {
   const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set())
+  const [isDragging, setIsDragging] = useState(false)
+  const [draggedKey, setDraggedKey] = useState<string | null>(null)
+  const lastNotePlayed = useRef<string | null>(null)
 
   // Note frequencies for one octave starting from C4 with keyboard mappings
   const notes = [
@@ -70,12 +74,29 @@ const Piano: React.FC<PianoProps> = ({ onNotePlay, onNoteStop }) => {
   // Create a map for quick keyboard lookup
   const keyboardMap = new Map(allNotes.map((note) => [note.key.toLowerCase(), note]))
 
-  const handleKeyDown = (note: string, frequency: number) => {
+  const handleNotePlay = (note: string, frequency: number) => {
     onNotePlay(frequency, note)
+    lastNotePlayed.current = note
   }
 
-  const handleKeyUp = (note: string) => {
+  const handleNoteStop = (note: string) => {
     onNoteStop(note)
+  }
+
+  const handleMouseDown = (note: string, frequency: number, keyboardKey: string) => {
+    setIsDragging(true)
+    setDraggedKey(keyboardKey)
+    handleNotePlay(note, frequency)
+  }
+
+  const handleMouseEnter = (note: string, frequency: number, keyboardKey: string) => {
+    if (isDragging) {
+      if (lastNotePlayed.current && lastNotePlayed.current !== note) {
+        handleNoteStop(lastNotePlayed.current)
+      }
+      handleNotePlay(note, frequency)
+      setDraggedKey(keyboardKey)
+    }
   }
 
   // Function to calculate black key position more accurately
@@ -93,8 +114,19 @@ const Piano: React.FC<PianoProps> = ({ onNotePlay, onNoteStop }) => {
     return leftPosition
   }
 
-  // Keyboard event handlers
+  // Keyboard and global mouse event handlers
   useEffect(() => {
+    const handleInteractionEnd = () => {
+      if (isDragging) {
+        setIsDragging(false)
+        if (lastNotePlayed.current) {
+          handleNoteStop(lastNotePlayed.current)
+          lastNotePlayed.current = null
+        }
+        setDraggedKey(null)
+      }
+    }
+
     const handleKeyboardDown = (event: KeyboardEvent) => {
       // Prevent default behavior for certain keys
       if (["Space", "Enter", "Tab"].includes(event.code)) {
@@ -115,7 +147,7 @@ const Piano: React.FC<PianoProps> = ({ onNotePlay, onNoteStop }) => {
       const noteData = keyboardMap.get(mappedKey)
       if (noteData && !pressedKeys.has(mappedKey)) {
         setPressedKeys((prev) => new Set(prev).add(mappedKey))
-        handleKeyDown(noteData.note, noteData.frequency)
+        handleNotePlay(noteData.note, noteData.frequency)
       }
     }
 
@@ -138,78 +170,90 @@ const Piano: React.FC<PianoProps> = ({ onNotePlay, onNoteStop }) => {
           newSet.delete(mappedKey)
           return newSet
         })
-        handleKeyUp(noteData.note)
+        handleNoteStop(noteData.note)
       }
     }
 
     window.addEventListener("keydown", handleKeyboardDown)
     window.addEventListener("keyup", handleKeyboardUp)
+    window.addEventListener("mouseup", handleInteractionEnd)
+    window.addEventListener("touchend", handleInteractionEnd)
 
     return () => {
       window.removeEventListener("keydown", handleKeyboardDown)
       window.removeEventListener("keyup", handleKeyboardUp)
+      window.removeEventListener("mouseup", handleInteractionEnd)
+      window.removeEventListener("touchend", handleInteractionEnd)
     }
-  }, [pressedKeys])
+  }, [pressedKeys, isDragging])
 
   // Check if a key is currently pressed (for visual feedback)
   const isKeyPressed = (keyboardKey: string) => {
-    return pressedKeys.has(keyboardKey.toLowerCase())
+    return pressedKeys.has(keyboardKey.toLowerCase()) || draggedKey === keyboardKey
   }
 
   return (
-    <div className="relative mx-auto" style={{ width: "700px", height: "200px" }}>
-      {/* White keys */}
-      {whiteKeys.map((key) => (
-        <button
-          key={key.note}
-          className={`absolute border-2 transition-all duration-100 rounded-b-lg shadow-lg hover:shadow-xl ${
-            isKeyPressed(key.key)
-              ? "bg-slate-300 border-slate-400 shadow-inner transform translate-y-1"
-              : "bg-white border-slate-300 hover:bg-slate-50 active:bg-slate-200 hover:border-slate-400"
-          }`}
-          style={{
-            left: `${key.position * 50}px`,
-            width: "48px",
-            height: "200px",
-            zIndex: 1,
-          }}
-          onMouseDown={() => handleKeyDown(key.note, key.frequency)}
-          onMouseUp={() => handleKeyUp(key.note)}
-          onMouseLeave={() => handleKeyUp(key.note)}
-        >
-          <span className="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-xs font-semibold text-slate-600">
-            {key.note.replace(/[0-9]/g, "")}
-          </span>
-          <span className="absolute bottom-3 left-1/2 transform -translate-x-1/2 text-xs text-slate-500 font-mono bg-slate-100 px-1.5 py-0.5 rounded border">
-            {key.key === "Enter" ? "↵" : key.key.toUpperCase()}
-          </span>
-        </button>
-      ))}
+    <div className="relative mx-auto overflow-x-auto" style={{ maxWidth: "100vw", height: "220px" }}>
+      <div className="relative" style={{ width: "700px", height: "200px" }}>
+        {/* White keys */}
+        {whiteKeys.map((key) => (
+          <button
+            key={key.note}
+            className={`absolute border-2 transition-all duration-100 rounded-b-lg shadow-lg ${
+              isKeyPressed(key.key)
+                ? "bg-slate-300 border-slate-400 shadow-inner transform translate-y-1"
+                : "bg-white border-slate-300 active:bg-slate-200"
+            }`}
+            style={{
+              left: `${key.position * 50}px`,
+              width: "48px",
+              height: "200px",
+              zIndex: 1,
+            }}
+            onMouseDown={() => handleMouseDown(key.note, key.frequency, key.key)}
+            onMouseEnter={() => handleMouseEnter(key.note, key.frequency, key.key)}
+            onTouchStart={() => handleMouseDown(key.note, key.frequency, key.key)}
+            onTouchEnd={() => {
+              /* Touch up is handled by the global mouseup/touchend */
+            }}
+          >
+            <span className="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-xs font-semibold text-slate-600">
+              {key.note.replace(/[0-9]/g, "")}
+            </span>
+            <span className="absolute bottom-3 left-1/2 transform -translate-x-1/2 text-xs text-slate-500 font-mono bg-slate-100 px-1.5 py-0.5 rounded border">
+              {key.key === "Enter" ? "↵" : key.key.toUpperCase()}
+            </span>
+          </button>
+        ))}
 
-      {/* Black keys */}
-      {blackKeys.map((key) => (
-        <button
-          key={key.note}
-          className={`absolute transition-all duration-100 rounded-b-lg shadow-xl hover:shadow-2xl ${
-            isKeyPressed(key.key)
-              ? "bg-slate-600 border-2 border-slate-500 shadow-inner transform translate-y-1"
-              : "bg-slate-900 hover:bg-slate-800 active:bg-slate-700 border-2 border-slate-700 hover:border-slate-600"
-          }`}
-          style={{
-            left: `${getBlackKeyPosition(key)}px`,
-            width: "30px",
-            height: "120px",
-            zIndex: 2,
-          }}
-          onMouseDown={() => handleKeyDown(key.note, key.frequency)}
-          onMouseUp={() => handleKeyUp(key.note)}
-          onMouseLeave={() => handleKeyUp(key.note)}
-        >
-          <span className="absolute bottom-3 left-1/2 transform -translate-x-1/2 text-xs text-white font-mono bg-slate-800 px-1 py-0.5 rounded border border-slate-600">
-            {key.key.toUpperCase()}
-          </span>
-        </button>
-      ))}
+        {/* Black keys */}
+        {blackKeys.map((key) => (
+          <button
+            key={key.note}
+            className={`absolute transition-all duration-100 rounded-b-lg shadow-xl ${
+              isKeyPressed(key.key)
+                ? "bg-slate-600 border-2 border-slate-500 shadow-inner transform translate-y-1"
+                : "bg-slate-900 active:bg-slate-700 border-2 border-slate-700"
+            }`}
+            style={{
+              left: `${getBlackKeyPosition(key)}px`,
+              width: "30px",
+              height: "120px",
+              zIndex: 2,
+            }}
+            onMouseDown={() => handleMouseDown(key.note, key.frequency, key.key)}
+            onMouseEnter={() => handleMouseEnter(key.note, key.frequency, key.key)}
+            onTouchStart={() => handleMouseDown(key.note, key.frequency, key.key)}
+            onTouchEnd={() => {
+              /* Touch up is handled by the global mouseup/touchend */
+            }}
+          >
+            <span className="absolute bottom-3 left-1/2 transform -translate-x-1/2 text-xs text-white font-mono bg-slate-800 px-1 py-0.5 rounded border border-slate-600">
+              {key.key.toUpperCase()}
+            </span>
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

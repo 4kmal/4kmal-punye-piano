@@ -20,32 +20,43 @@ const ControlKnob: React.FC<ControlKnobProps> = ({ label, value, min, max, onCha
   const normalizedValue = (value - min) / (max - min)
   const rotation = normalizedValue * 270 - 135 // -135 to +135 degrees
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleInteractionStart = (y: number) => {
     setIsDragging(true)
-    startYRef.current = e.clientY
+    startYRef.current = y
     startValueRef.current = value
   }
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleInteractionMove = (y: number) => {
     if (!isDragging) return
-
-    const deltaY = startYRef.current - e.clientY // Inverted for natural feel
+    const deltaY = startYRef.current - y // Inverted for natural feel
     const sensitivity = (max - min) / 100 // 100px = full range
     const newValue = Math.min(max, Math.max(min, startValueRef.current + deltaY * sensitivity))
     onChange(newValue)
   }
 
-  const handleMouseUp = () => {
+  const handleInteractionEnd = () => {
     setIsDragging(false)
   }
+
+  const handleMouseDown = (e: React.MouseEvent) => handleInteractionStart(e.clientY)
+  const handleMouseMove = (e: MouseEvent) => handleInteractionMove(e.clientY)
+  const handleMouseUp = () => handleInteractionEnd()
+
+  const handleTouchStart = (e: React.TouchEvent) => handleInteractionStart(e.touches[0].clientY)
+  const handleTouchMove = (e: TouchEvent) => handleInteractionMove(e.touches[0].clientY)
+  const handleTouchEnd = () => handleInteractionEnd()
 
   React.useEffect(() => {
     if (isDragging) {
       document.addEventListener("mousemove", handleMouseMove)
       document.addEventListener("mouseup", handleMouseUp)
+      document.addEventListener("touchmove", handleTouchMove)
+      document.addEventListener("touchend", handleTouchEnd)
       return () => {
         document.removeEventListener("mousemove", handleMouseMove)
         document.removeEventListener("mouseup", handleMouseUp)
+        document.removeEventListener("touchmove", handleTouchMove)
+        document.removeEventListener("touchend", handleTouchEnd)
       }
     }
   }, [isDragging])
@@ -60,6 +71,7 @@ const ControlKnob: React.FC<ControlKnobProps> = ({ label, value, min, max, onCha
             isDragging ? "shadow-xl scale-105 border-blue-400" : "shadow-lg hover:shadow-xl hover:scale-102"
           }`}
           onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
           style={{
             transform: `rotate(${rotation}deg) ${isDragging ? "scale(1.05)" : ""}`,
           }}
