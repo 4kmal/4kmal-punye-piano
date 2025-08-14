@@ -8,9 +8,9 @@ The hook receives a set of parameteres that allows you to customize the pace, an
 
 ###
 
-```sh
+\`\`\`sh
   yarn dev
-```
+\`\`\`
 
 Will start the `playground` minisite at `http://localhost:1234` and build the library on watch mode
 
@@ -20,15 +20,15 @@ Will start the `playground` minisite at `http://localhost:1234` and build the li
 
 ### Install to your react application
 
-```sh
+\`\`\`sh
   npm install use-scramble
-```
+\`\`\`
 
 ### Import and call the `useScramble` hook
 
 The hook returns a `ref` object, that you must apply to the target node, for the animation to take over.
 
-```jsx
+\`\`\`jsx
 import { useScramble } from 'use-scramble';
 
 export const App = () => {
@@ -43,7 +43,7 @@ export const App = () => {
 
   return <p ref={ref} />;
 };
-```
+\`\`\`
 
 ## Manual replay
 
@@ -51,7 +51,7 @@ Along with the `ref`, the hook returns a `replay` function, that you can call to
 
 You can also disable the first animation, by setting the `playOnMount` to false.
 
-```jsx
+\`\`\`jsx
 import { useScramble } from 'use-scramble';
 
 export const App = () => {
@@ -62,7 +62,7 @@ export const App = () => {
 
   return <p ref={ref} onMouseOver={replay} onMouseOut={replay} />;
 };
-```
+\`\`\`
 
 ## API Reference
 
@@ -88,11 +88,11 @@ export const App = () => {
 
 Along with the `ref` the return value, contains a `replay` function, that you can invoke to restart the animation.
 
-```jsx
+\`\`\`jsx
 const { ref, replay } = useScramble({ text: 'your_text' });
 
 return <p ref={ref} onclick={replay} />;
-```
+\`\`\`
 
 ## Reduced Motion
 

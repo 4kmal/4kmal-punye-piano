@@ -28,6 +28,7 @@ export const metadata: Metadata = {
   title: "MIDI Controller - Web Synth",
   description: "A web-based synthesizer with realistic piano sounds, built with Next.js and the Web Audio API.",
   icons: [{ rel: "icon", url: "/favicon.png" }],
+    generator: 'v0.app'
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
